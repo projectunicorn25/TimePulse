@@ -94,7 +94,8 @@ export default async function AdminPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <main className="container mx-auto px-4 py-6">
+      <div className="space-y-8">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div>
@@ -140,7 +141,8 @@ export default async function AdminPage() {
         </h2>
         <AdminClient initial={entries ?? []} />
       </div>
-    </div>
+      </div>
+    </main>
   )
 }
 

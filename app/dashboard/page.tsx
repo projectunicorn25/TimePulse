@@ -3,7 +3,7 @@ import { addEntry, updateStatus, deleteEntry } from '../actions'
 import EntryForm from './EntryForm'
 import EntryList from './EntryList'
 import { redirect } from 'next/navigation'
-import { formatTimePeriod, getDaysUntilDeadline, TimePeriod } from '@/lib/utils'
+import { formatTimePeriod, getDaysUntilDeadline, getDaysUntilPayday, TimePeriod } from '@/lib/utils'
 
 // Server-side function to get current time period
 async function getCurrentTimePeriod(): Promise<TimePeriod | null> {
@@ -79,8 +79,19 @@ export default async function Dashboard() {
     )
   }
 
-  // Get current time period
+  // Get current time period and next payday
   const currentPeriod = await getCurrentTimePeriod()
+  
+  // Get next payday info (server-side version)
+  const supabasePayday = await supabaseServer()
+  const today = new Date().toISOString().split('T')[0]
+  const { data: nextPaydayPeriod } = await supabasePayday
+    .from('time_periods')
+    .select('*')
+    .gte('payday_date', today)
+    .order('payday_date', { ascending: true })
+    .limit(1)
+    .maybeSingle()
 
   const [entriesResult, projectsResult, periodTotalResult, weekTotalResult] = await Promise.all([
     supabase
@@ -114,11 +125,17 @@ export default async function Dashboard() {
   const draftCount = entries.filter(e => e.status === 'draft').length
   const submittedCount = entries.filter(e => e.status === 'submitted').length
 
-  // Calculate days until deadline
+  // Calculate days until deadline and payday
   const daysUntilDeadline = currentPeriod ? getDaysUntilDeadline(currentPeriod) : null
+  const daysUntilPayday = nextPaydayPeriod ? getDaysUntilPayday(nextPaydayPeriod) : null
+  const nextPaydayDate = nextPaydayPeriod ? new Date(nextPaydayPeriod.payday_date).toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric' 
+  }) : null
 
   return (
-    <div className="space-y-8">
+    <main className="container mx-auto px-4 py-6">
+      <div className="space-y-8">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div>
@@ -165,6 +182,22 @@ export default async function Dashboard() {
                 </div>
                 <div className="text-xs text-zinc-500 mt-1">
                   Until Deadline
+                </div>
+              </div>
+            </div>
+          )}
+
+          {daysUntilPayday !== null && nextPaydayDate && (
+            <div className="card px-4 py-3 min-w-[120px]">
+              <div className="text-center">
+                <div className="text-xl font-bold text-green-400">
+                  {daysUntilPayday}
+                </div>
+                <div className="text-xs text-zinc-400 uppercase tracking-wide">
+                  Days to Payday
+                </div>
+                <div className="text-xs text-zinc-500 mt-1">
+                  {nextPaydayDate}
                 </div>
               </div>
             </div>
@@ -223,7 +256,8 @@ export default async function Dashboard() {
           deleteEntry={deleteEntry}
         />
       </div>
-    </div>
+      </div>
+    </main>
   )
 }
 

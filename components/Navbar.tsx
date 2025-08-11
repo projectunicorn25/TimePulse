@@ -7,14 +7,16 @@ export default function Navbar() {
   const { user, profile, role, loading } = useAuth()
 
   return (
-    <header className="navbar">
-      <nav className="container h-16 flex items-center gap-6">
+    <header className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-4xl px-4">
+      <nav className="rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl shadow-2xl px-6 py-3 flex items-center gap-6">
         {/* Logo */}
-        <Link href="/" className="font-bold text-zinc-100 flex items-center gap-2 hover:scale-105 transition-transform">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-lg">
-            <div className="w-3 h-3 border-2 border-white rounded-full"></div>
+        <Link href="/" className="font-bold text-white flex items-center gap-2 hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          <span className="text-base gradient-text">TimePulse</span>
+          <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">TimePulse</span>
         </Link>
 
         {/* Navigation Links */}
@@ -23,7 +25,7 @@ export default function Navbar() {
             {role === 'contractor' && (
               <Link
                 href="/dashboard"
-                className="px-4 py-2 text-sm font-medium text-zinc-300 hover:text-zinc-100 hover:bg-[var(--glass-bg)] rounded-lg transition-all"
+                className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all"
               >
                 Dashboard
               </Link>
@@ -31,7 +33,7 @@ export default function Navbar() {
             {role === 'manager' && (
               <Link
                 href="/admin"
-                className="px-4 py-2 text-sm font-medium text-zinc-300 hover:text-zinc-100 hover:bg-[var(--glass-bg)] rounded-lg transition-all"
+                className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all"
               >
                 Manager Dashboard
               </Link>

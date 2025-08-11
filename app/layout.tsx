@@ -1,6 +1,6 @@
 import './globals.css'
 import Providers from './providers'
-import Navbar from '@/components/Navbar'
+import ConditionalNavbar from '@/components/ConditionalNavbar'
 
 export const metadata = {
   title: 'TimePulse',
@@ -12,8 +12,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark" suppressHydrationWarning>
       <body>
         <Providers>
-          <Navbar />
-          <main className="container py-6">{children}</main>
+          <ConditionalNavbar />
+          {children}
         </Providers>
       </body>
     </html>

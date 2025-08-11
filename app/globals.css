@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Aurora Background Animations */
+@keyframes aurora {
+  from {
+    background-position:
+      50% 50%,
+      50% 50%;
+  }
+  to {
+    background-position:
+      350% 50%,
+      350% 50%;
+  }
+}
+
+.animate-aurora {
+  animation: aurora 60s linear infinite;
+}
+
 :root {
   --bg: 8 8 12;
   --bg-secondary: 15 15 17;

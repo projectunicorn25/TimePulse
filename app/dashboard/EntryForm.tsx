@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 // TimePeriodSelect component inline for now
-import { TimePeriod, getRelevantTimePeriods, getCurrentTimePeriod, formatTimePeriodDetailed, getTimePeriodStatus, getDaysUntilDeadline } from '@/lib/utils'
+import { TimePeriod, getRelevantTimePeriods, getCurrentTimePeriod } from '@/lib/utils'
 import { useEffect } from 'react'
 
 interface TimePeriodSelectProps {
@@ -25,87 +25,54 @@ function TimePeriodSelect({
   const [currentPeriod, setCurrentPeriod] = useState<TimePeriod | null>(null)
 
   useEffect(() => {
-    async function loadTimePeriods() {
-      setLoading(true)
+    async function loadData() {
       try {
-        const [periods, current] = await Promise.all([
-          getRelevantTimePeriods(),
-          getCurrentTimePeriod()
-        ])
-
+        // Load time periods
+        const periods = await getRelevantTimePeriods()
         setTimePeriods(periods)
+
+        // Load current period
+        const current = await getCurrentTimePeriod()
         setCurrentPeriod(current)
 
-        // Auto-select current period if no value is set and autoSelectCurrent is true
+        // Auto-select current period
         if (autoSelectCurrent && !value && current) {
           onChange(current.id)
         }
       } catch (error) {
-        console.error('Error loading time periods:', error)
+        console.error('Failed to load time periods:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    loadTimePeriods()
+    loadData()
   }, [autoSelectCurrent, value, onChange])
 
   if (loading) {
     return (
-      <div className="relative">
-        <select
-          disabled
-          className={`input ${className}`}
-        >
-          <option>Loading time periods...</option>
-        </select>
-      </div>
+      <select disabled className={`input ${className}`}>
+        <option>Loading...</option>
+      </select>
     )
   }
 
   return (
-    <div className="relative">
-      <select
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className={`input ${className}`}
-        required
-      >
-        <option value="">Select time period...</option>
-        {timePeriods.map((period) => {
-          const status = getTimePeriodStatus(period)
-          const daysUntilDeadline = getDaysUntilDeadline(period)
-          const isCurrentPeriod = currentPeriod?.id === period.id
-
-          let displayText = formatTimePeriodDetailed(period)
-          if (isCurrentPeriod) {
-            displayText += ` • Current Period`
-          } else if (status === 'future') {
-            displayText += ` • Upcoming`
-          } else if (status === 'past') {
-            displayText += ` • Past`
-          }
-
-          if (status === 'current' && daysUntilDeadline <= 3) {
-            displayText += ` • ${daysUntilDeadline} day${daysUntilDeadline !== 1 ? 's' : ''} until deadline`
-          }
-
-          return (
-            <option
-              key={period.id}
-              value={period.id}
-              className={
-                isCurrentPeriod ? 'font-semibold' :
-                status === 'past' ? 'text-zinc-500' : ''
-              }
-            >
-              {displayText}
-            </option>
-          )
-        })}
-      </select>
-    </div>
+    <select
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      className={`input ${className}`}
+      required
+    >
+      <option value="">Select time period...</option>
+      {timePeriods.map((period) => (
+        <option key={period.id} value={period.id}>
+          {period.period_name}
+          {currentPeriod?.id === period.id ? ' (Current)' : ''}
+        </option>
+      ))}
+    </select>
   )
 }
 

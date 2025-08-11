@@ -12,6 +12,7 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
+  const roleParam = searchParams.get('role')
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -67,13 +68,16 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-[80vh] grid place-items-center p-4">
+    <main className="container mx-auto px-4 py-6">
+      <div className="min-h-[80vh] grid place-items-center">
       <div className="w-full max-w-md card p-8 animate-slide-up">
         <div className="text-center mb-6">
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center mx-auto mb-3">
             <div className="w-6 h-6 border-2 border-white rounded-full"></div>
           </div>
-          <h1 className="text-2xl font-bold gradient-text mb-2">Welcome back</h1>
+          <h1 className="text-2xl font-bold gradient-text mb-2">
+            Welcome back
+          </h1>
           <p className="text-zinc-400 text-sm">
             Sign in to your TimePulse account
           </p>
@@ -150,7 +154,8 @@ function LoginForm() {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </main>
   )
 }
 

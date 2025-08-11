@@ -17,6 +17,7 @@ export interface TimePeriod {
   payday_date: string
   year: number
   period_number: number
+  created_at?: string
 }
 
 /**
@@ -49,17 +50,17 @@ export async function getTimePeriods(year?: number): Promise<TimePeriod[]> {
  */
 export async function getCurrentTimePeriod(): Promise<TimePeriod | null> {
   const supabase = supabaseBrowser()
-  const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0]
 
   const { data, error } = await supabase
     .from('time_periods')
     .select('*')
     .lte('start_date', today)
     .gte('end_date', today)
-    .single()
+    .maybeSingle()
 
   if (error) {
-    console.error('Error fetching current time period:', error)
+    console.error('getCurrentTimePeriod error:', error)
     return null
   }
 
@@ -76,7 +77,7 @@ export async function getTimePeriodById(id: string): Promise<TimePeriod | null> 
     .from('time_periods')
     .select('*')
     .eq('id', id)
-    .single()
+    .maybeSingle()
 
   if (error) {
     console.error('Error fetching time period:', error)
@@ -97,7 +98,7 @@ export async function getTimePeriodForDate(date: string): Promise<TimePeriod | n
     .select('*')
     .lte('start_date', date)
     .gte('end_date', date)
-    .single()
+    .maybeSingle()
 
   if (error) {
     console.error('Error fetching time period for date:', error)
@@ -181,23 +182,59 @@ export function getDaysUntilDeadline(period: TimePeriod): number {
  */
 export async function getRelevantTimePeriods(): Promise<TimePeriod[]> {
   const supabase = supabaseBrowser()
-  const today = new Date()
-  const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 3, today.getDate())
-  const threeMonthsFromNow = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate())
+  const today = new Date().toISOString().split('T')[0]
 
   const { data, error } = await supabase
     .from('time_periods')
     .select('*')
-    .gte('end_date', threeMonthsAgo.toISOString().split('T')[0])
-    .lte('start_date', threeMonthsFromNow.toISOString().split('T')[0])
+    .gte('end_date', today)
     .order('start_date', { ascending: true })
+    .limit(10)
 
   if (error) {
-    console.error('Error fetching relevant time periods:', error)
+    console.error('getRelevantTimePeriods error:', error)
     return []
   }
 
   return data || []
+}
+
+/**
+ * Get days until next payday
+ */
+export function getDaysUntilPayday(period: TimePeriod): number {
+  const today = new Date()
+  const payday = new Date(period.payday_date)
+  const diffTime = payday.getTime() - today.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return Math.max(0, diffDays)
+}
+
+/**
+ * Get the next upcoming payday from current or next period
+ */
+export async function getNextPayday(): Promise<{ period: TimePeriod; daysUntil: number } | null> {
+  const supabase = supabaseBrowser()
+  const today = new Date().toISOString().split('T')[0]
+
+  // Get current or next period with payday after today
+  const { data, error } = await supabase
+    .from('time_periods')
+    .select('*')
+    .gte('payday_date', today)
+    .order('payday_date', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) {
+    console.error('getNextPayday error:', error)
+    return null
+  }
+
+  return {
+    period: data,
+    daysUntil: getDaysUntilPayday(data)
+  }
 }
 
 

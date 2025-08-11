@@ -1,5 +1,5 @@
 'use client'
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabaseBrowser } from '@/lib/supabaseClient'
@@ -16,6 +16,14 @@ function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
+  const roleParam = searchParams.get('role') as 'contractor' | 'manager' | null
+
+  // Set role from URL parameter if provided
+  useEffect(() => {
+    if (roleParam && (roleParam === 'contractor' || roleParam === 'manager')) {
+      setRole(roleParam)
+    }
+  }, [roleParam])
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -97,7 +105,8 @@ function SignupForm() {
   }
 
   return (
-    <div className="min-h-[80vh] grid place-items-center p-4">
+    <main className="container mx-auto px-4 py-6">
+      <div className="min-h-[80vh] grid place-items-center">
       <div className="w-full max-w-md card p-8 animate-slide-up">
         <div className="text-center mb-6">
           <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center mx-auto mb-3">
@@ -105,10 +114,20 @@ function SignupForm() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold gradient-text mb-2">Join TimePulse</h1>
+          <h1 className="text-2xl font-bold gradient-text mb-2">
+            Join TimePulse{roleParam ? ` as ${roleParam}` : ''}
+          </h1>
           <p className="text-zinc-400 text-sm">
-            Create your account to start tracking time
+            {roleParam === 'contractor' && 'Create your account to start logging hours and tracking time'}
+            {roleParam === 'manager' && 'Create your account to manage team timesheets and approvals'}
+            {!roleParam && 'Create your account to start tracking time'}
           </p>
+          {roleParam && (
+            <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              {roleParam === 'contractor' && '⏱️ Contractor Account'}
+              {roleParam === 'manager' && '👨‍💼 Manager Account'}
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSignup} className="space-y-6">
@@ -244,7 +263,8 @@ function SignupForm() {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </main>
   )
 }
 
